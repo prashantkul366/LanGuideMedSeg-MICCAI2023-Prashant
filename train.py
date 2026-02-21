@@ -54,8 +54,19 @@ if __name__ == '__main__':
                 mode='valid')
 
 
-    dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)
-    dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=args.valid_batch_size)
+    # dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)
+    # dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=args.valid_batch_size)
+
+    dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=4)
+    dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=4)
+    print("======================================")
+    print("Train CSV Path:", args.train_csv_path)
+    print("Train Root Path:", args.train_root_path)
+    print("Train Dataset Length:", len(ds_train))
+    print("Valid CSV Path:", args.valid_csv_path)
+    print("Valid Root Path:", args.valid_root_path)
+    print("Valid Dataset Length:", len(ds_valid))
+    print("======================================")
 
     model = LanGuideMedSegWrapper(args)
 
