@@ -58,11 +58,19 @@ class QaTa(Dataset):
         gt = os.path.join(self.root_path,'masks', self.image_list[idx])
         caption = self.caption_list[idx]
 
-        token_output = self.tokenizer.encode_plus(caption, padding='max_length',
-                                                        max_length=24, 
-                                                        truncation=True,
-                                                        return_attention_mask=True,
-                                                        return_tensors='pt')
+        # token_output = self.tokenizer.encode_plus(caption, padding='max_length',
+        #                                                 max_length=24, 
+        #                                                 truncation=True,
+        #                                                 return_attention_mask=True,
+        #                                                 return_tensors='pt')
+        token_output = self.tokenizer(
+                caption,
+                padding='max_length',
+                max_length=24,
+                truncation=True,
+                return_attention_mask=True,
+                return_tensors='pt'
+            )
         token,mask = token_output['input_ids'],token_output['attention_mask']
 
         data = {'image':image, 'gt':gt, 'token':token, 'mask':mask}
