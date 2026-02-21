@@ -27,6 +27,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.train_metrics = nn.ModuleDict(metrics_dict)
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
+        self.patience = args.patience
         
         # self.save_hyperparameters()
 
@@ -124,7 +125,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.log_dict(dic, logger=True)
 
         if hasattr(self, "best_dice"):
-            self.print(f"🏆 Best Val Dice So Far: {self.best_dice:.4f}")
+            self.print(f"Best Val Dice So Far: {self.best_dice:.4f}")
 
     # def validation_epoch_end(self, outputs):
     #     dic = self.shared_epoch_end(outputs,stage="val")
@@ -168,9 +169,10 @@ class LanGuideMedSegWrapper(pl.LightningModule):
                 self.no_improve_count += 1
 
         # Print tracking info
-        self.print(f"🔹 Current Dice: {current_dice:.4f}")
-        self.print(f"🏆 Best Dice So Far: {self.best_dice:.4f}")
-        self.print(f"⏳ Early Stop Counter: {self.no_improve_count}/{self.hparams.patience}")
+        self.print(f" Current Dice: {current_dice:.4f}")
+        self.print(f" Best Dice So Far: {self.best_dice:.4f}")
+        # self.print(f" Early Stop Counter: {self.no_improve_count}/{self.hparams.patience}")
+        self.print(f" Early Stop Counter: {self.no_improve_count}/{self.patience}")
 
         # Print best model path if improved
         ckpt_cb = self.trainer.checkpoint_callback
