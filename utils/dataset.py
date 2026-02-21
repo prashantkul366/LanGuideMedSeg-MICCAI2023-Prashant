@@ -35,8 +35,23 @@ class QaTa(Dataset):
         # self.caption_list = list(self.data['prompt_text'])
 
         # BUSI UNCOMMENT THIS
-        self.image_list = list(self.data['Filename'])
-        self.caption_list = list(self.data['Text'])
+        # self.image_list = list(self.data['Filename'])
+        # self.caption_list = list(self.data['Text'])
+
+        cols = [c.lower() for c in self.data.columns]
+
+        if 'filename' in cols:
+            self.data.columns = self.data.columns.str.lower()
+            self.image_list = list(self.data['filename'])
+            self.caption_list = list(self.data['text'])
+
+        elif 'image_name' in cols:
+            self.data.columns = self.data.columns.str.lower()
+            self.image_list = list(self.data['image_name'])
+            self.caption_list = list(self.data['prompt_text'])
+
+        else:
+            raise ValueError("Unsupported dataset format")
 
         # if mode == 'train':
         #     self.image_list = self.image_list[:int(0.8*len(self.image_list))]
@@ -71,11 +86,20 @@ class QaTa(Dataset):
         # gt = os.path.join(self.root_path, 'masks', base_name + ".png")
 
         # BUSI
-        image_name = self.image_list[idx]
+        # image_name = self.image_list[idx]
+
+        # image = os.path.join(self.root_path, 'images', image_name)
+        # gt = os.path.join(self.root_path, 'masks', image_name)
+
+        if 'mask_name' in self.data.columns:
+            image_name = self.data.iloc[idx]['image_name']
+            mask_name = self.data.iloc[idx]['mask_name']
+        else:
+            image_name = self.image_list[idx]
+            mask_name = image_name
 
         image = os.path.join(self.root_path, 'images', image_name)
-        gt = os.path.join(self.root_path, 'masks', image_name)
-
+        gt = os.path.join(self.root_path, 'masks', mask_name)
         
         # image = os.path.join(self.root_path,'images', self.image_list[idx])
         # gt = os.path.join(self.root_path,'masks', self.image_list[idx])
