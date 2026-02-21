@@ -54,8 +54,14 @@ class QaTa(Dataset):
 
         # image = os.path.join(self.root_path,'Images',self.image_list[idx].replace('mask_',''))
         # gt = os.path.join(self.root_path,'GTs', self.image_list[idx])
-        image = os.path.join(self.root_path,'images', self.image_list[idx])
-        gt = os.path.join(self.root_path,'masks', self.image_list[idx])
+        image_name = self.image_list[idx]
+        base_name = os.path.splitext(image_name)[0]
+
+        image = os.path.join(self.root_path, 'images', image_name)
+        gt = os.path.join(self.root_path, 'masks', base_name + ".png")
+
+        # image = os.path.join(self.root_path,'images', self.image_list[idx])
+        # gt = os.path.join(self.root_path,'masks', self.image_list[idx])
         caption = self.caption_list[idx]
 
         # token_output = self.tokenizer.encode_plus(caption, padding='max_length',
