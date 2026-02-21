@@ -35,9 +35,9 @@ TRAIN:
 
   image_size: [224,224]
 
-  min_epochs: 20
-  max_epochs: 100
-  patience: 20
+  min_epochs: 0
+  max_epochs: 1000
+  patience: 100
 
   device: 1
 
