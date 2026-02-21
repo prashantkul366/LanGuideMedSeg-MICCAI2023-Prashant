@@ -39,6 +39,7 @@ class QaTa(Dataset):
         self.image_size = image_size
 
         self.tokenizer = AutoTokenizer.from_pretrained(tokenizer, trust_remote_code=True)
+        print(f"Len of Dataset {len(self.image_list)}")
 
     def __len__(self):
 

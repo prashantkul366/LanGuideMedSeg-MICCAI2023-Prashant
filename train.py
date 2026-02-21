@@ -10,6 +10,7 @@ from torchmetrics import Accuracy,Dice
 from torchmetrics.classification import BinaryJaccardIndex
 from pytorch_lightning.callbacks import ModelCheckpoint,EarlyStopping
 
+# from pytorch_lightning 
 import torch.multiprocessing
 torch.multiprocessing.set_sharing_strategy('file_system')
 import argparse
@@ -62,15 +63,17 @@ if __name__ == '__main__':
     model_ckpt = ModelCheckpoint(
         dirpath=args.model_save_path,
         filename=args.model_save_filename,
-        monitor='val_loss',
+        monitor='val_dice',
         save_top_k=1,
-        mode='min',
+        mode='max',
         verbose=True,
     )
 
-    early_stopping = EarlyStopping(monitor = 'val_loss',
-                            patience=args.patience,
-                            mode = 'min'
+    early_stopping = EarlyStopping(
+        monitor='val_dice',
+        patience=args.patience,
+        mode='max',
+        verbose=True
     )
 
     ## 2. setting trainer

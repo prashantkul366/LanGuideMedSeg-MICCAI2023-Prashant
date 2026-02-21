@@ -16,7 +16,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def __init__(self, args):
         
         super(LanGuideMedSegWrapper, self).__init__()
-        
+        print("Model initiated")
         self.model = LanGuideMedSeg(args.bert_type, args.vision_type, args.project_dim)
         self.lr = args.lr
         self.history = {}
@@ -97,29 +97,76 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             self.history[epoch] = dict(self.history.get(epoch,{}),**dic)    
         return dic 
     
+    # def training_epoch_end(self, outputs):
+    #     dic = self.shared_epoch_end(outputs,stage="train")
+    #     self.print(dic)
+    #     dic.pop("epoch",None)
+    #     self.log_dict(dic, logger=True)
+    
     def training_epoch_end(self, outputs):
-        dic = self.shared_epoch_end(outputs,stage="train")
-        self.print(dic)
-        dic.pop("epoch",None)
-        self.log_dict(dic, logger=True)
 
-    def validation_epoch_end(self, outputs):
-        dic = self.shared_epoch_end(outputs,stage="val")
+        dic = self.shared_epoch_end(outputs, stage="train")
         self.print_bar()
         self.print(dic)
-        dic.pop("epoch",None)
+
+        dic.pop("epoch", None)
         self.log_dict(dic, logger=True)
+
+        if hasattr(self, "best_dice"):
+            self.print(f"🏆 Best Val Dice So Far: {self.best_dice:.4f}")
+
+    # def validation_epoch_end(self, outputs):
+    #     dic = self.shared_epoch_end(outputs,stage="val")
+    #     self.print_bar()
+    #     self.print(dic)
+    #     dic.pop("epoch",None)
+    #     self.log_dict(dic, logger=True)
         
-        #log when reach best score
-        ckpt_cb = self.trainer.checkpoint_callback
-        monitor = ckpt_cb.monitor 
-        mode = ckpt_cb.mode 
-        arr_scores = self.get_history()[monitor]
-        best_score_idx = np.argmax(arr_scores) if mode=="max" else np.argmin(arr_scores)
-        if best_score_idx==len(arr_scores)-1:   
-            self.print("<<<<<< reach best {0} : {1} >>>>>>".format(
-                monitor,arr_scores[best_score_idx]),file = sys.stderr)
+    #     #log when reach best score
+    #     ckpt_cb = self.trainer.checkpoint_callback
+    #     monitor = ckpt_cb.monitor 
+    #     mode = ckpt_cb.mode 
+    #     arr_scores = self.get_history()[monitor]
+    #     best_score_idx = np.argmax(arr_scores) if mode=="max" else np.argmin(arr_scores)
+    #     if best_score_idx==len(arr_scores)-1:   
+    #         self.print("<<<<<< reach best {0} : {1} >>>>>>".format(
+    #             monitor,arr_scores[best_score_idx]),file = sys.stderr)
     
+    def validation_epoch_end(self, outputs):
+
+        dic = self.shared_epoch_end(outputs, stage="val")
+        self.print_bar()
+        self.print(dic)
+
+        # Remove epoch key for logging
+        dic.pop("epoch", None)
+        self.log_dict(dic, logger=True)
+
+        # Get current val_dice
+        current_dice = dic["val_dice"]
+
+        # Initialize best dice tracking
+        if not hasattr(self, "best_dice"):
+            self.best_dice = current_dice
+            self.no_improve_count = 0
+        else:
+            if current_dice > self.best_dice:
+                self.best_dice = current_dice
+                self.no_improve_count = 0
+            else:
+                self.no_improve_count += 1
+
+        # Print tracking info
+        self.print(f"🔹 Current Dice: {current_dice:.4f}")
+        self.print(f"🏆 Best Dice So Far: {self.best_dice:.4f}")
+        self.print(f"⏳ Early Stop Counter: {self.no_improve_count}/{self.hparams.patience}")
+
+        # Print best model path if improved
+        ckpt_cb = self.trainer.checkpoint_callback
+        if ckpt_cb.best_model_path:
+            self.print(f"💾 Best model saved at: {ckpt_cb.best_model_path}")
+
+
     def test_epoch_end(self, outputs):
         dic = self.shared_epoch_end(outputs,stage="test")
         dic.pop("epoch",None)
