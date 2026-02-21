@@ -83,7 +83,7 @@ if __name__ == '__main__':
 
     early_stopping = EarlyStopping(
         monitor='val_dice',
-        patience=args.patience,
+        patience=100,
         mode='max',
         verbose=True
     )
