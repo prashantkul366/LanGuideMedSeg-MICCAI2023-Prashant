@@ -75,14 +75,39 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         else:
             return self(batch)
         
-    def shared_step_end(self,outputs,stage):
-        metrics = self.train_metrics if stage=="train" else (
-            self.val_metrics if stage=="val" else self.test_metrics)
+    # def shared_step_end(self,outputs,stage):
+    #     metrics = self.train_metrics if stage=="train" else (
+    #         self.val_metrics if stage=="val" else self.test_metrics)
+    #     for name in metrics:
+    #         step_metric = metrics[name](outputs['preds'], outputs['y']).item()
+    #         if stage=="train":
+    #             self.log(name,step_metric,prog_bar=True)
+    #     return outputs["loss"].mean()
+    def shared_step_end(self, outputs, stage):
+
+        metrics = self.train_metrics if stage == "train" else (
+            self.val_metrics if stage == "val" else self.test_metrics)
+
+        loss = outputs["loss"]
+
         for name in metrics:
-            step_metric = metrics[name](outputs['preds'], outputs['y']).item()
-            if stage=="train":
-                self.log(name,step_metric,prog_bar=True)
-        return outputs["loss"].mean()
+            metric_value = metrics[name](outputs['preds'], outputs['y'])
+
+            if stage == "train":
+                self.log(f"train_{name}",
+                        metric_value,
+                        prog_bar=True,
+                        on_step=True,
+                        on_epoch=False)
+
+        if stage == "train":
+            self.log("train_loss",
+                    loss,
+                    prog_bar=True,
+                    on_step=True,
+                    on_epoch=False)
+
+        return loss
         
     def training_step_end(self, outputs):
         return {'loss':self.shared_step_end(outputs,"train")}
@@ -169,10 +194,15 @@ class LanGuideMedSegWrapper(pl.LightningModule):
                 self.no_improve_count += 1
 
         # Print tracking info
-        self.print(f" Current Dice: {current_dice:.4f}")
-        self.print(f" Best Dice So Far: {self.best_dice:.4f}")
-        # self.print(f" Early Stop Counter: {self.no_improve_count}/{self.hparams.patience}")
-        self.print(f" Early Stop Counter: {self.no_improve_count}/{self.patience}")
+        self.print("\n" + "="*80)
+        self.print(f"Epoch {self.current_epoch}")
+        self.print(f"Val Loss  : {dic['val_loss']:.4f}")
+        self.print(f"Val Dice  : {dic['val_dice']:.4f}")
+        self.print(f"Val IoU   : {dic['val_MIoU']:.4f}")
+        self.print(f"Val Acc   : {dic['val_acc']:.4f}")
+        self.print(f"Best Dice : {self.best_dice:.4f}")
+        self.print(f"EarlyStop : {self.no_improve_count}/{self.patience}")
+        self.print("="*80)
 
         # Print best model path if improved
         ckpt_cb = self.trainer.checkpoint_callback

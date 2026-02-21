@@ -90,14 +90,23 @@ if __name__ == '__main__':
 
     ## 2. setting trainer
 
-    trainer = pl.Trainer(logger=True,
-                        min_epochs=args.min_epochs,max_epochs=args.max_epochs,
-                        accelerator='gpu', 
-                        devices=args.device,
-                        callbacks=[model_ckpt,early_stopping],
-                        enable_progress_bar=False,
-                        ) 
-
+    # trainer = pl.Trainer(logger=True,
+    #                     min_epochs=args.min_epochs,max_epochs=args.max_epochs,
+    #                     accelerator='gpu', 
+    #                     devices=args.device,
+    #                     callbacks=[model_ckpt,early_stopping],
+    #                     enable_progress_bar=False,
+    #                     ) 
+    trainer = pl.Trainer(
+            logger=True,
+            min_epochs=args.min_epochs,
+            max_epochs=args.max_epochs,
+            accelerator='gpu',
+            devices=args.device,
+            callbacks=[model_ckpt, early_stopping],
+            enable_progress_bar=True,   # 🔥 enable tqdm
+            log_every_n_steps=10        # update bar every 10 batches
+        )
     ## 3. start training
     print('start training')
     trainer.fit(model,dl_train,dl_valid)
