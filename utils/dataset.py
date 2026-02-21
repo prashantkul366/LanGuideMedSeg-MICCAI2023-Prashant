@@ -32,7 +32,7 @@ class QaTa(Dataset):
         # self.caption_list = list(self.data['prompt_text'])
 
         # BUSI UNCOMMENT THIS
-        self.image_list = list(self.data['filename'])
+        self.image_list = list(self.data['Filename'])
         self.caption_list = list(self.data['Text'])
 
         # if mode == 'train':
@@ -63,9 +63,17 @@ class QaTa(Dataset):
         image_name = self.image_list[idx]
         base_name = os.path.splitext(image_name)[0]
 
-        image = os.path.join(self.root_path, 'images', image_name)
-        gt = os.path.join(self.root_path, 'masks', base_name + ".png")
+        # KVASIR
+        # image = os.path.join(self.root_path, 'images', image_name)
+        # gt = os.path.join(self.root_path, 'masks', base_name + ".png")
 
+        # BUSI
+        image_name = self.image_list[idx]
+
+        image = os.path.join(self.root_path, 'images', image_name)
+        gt = os.path.join(self.root_path, 'masks', image_name)
+
+        
         # image = os.path.join(self.root_path,'images', self.image_list[idx])
         # gt = os.path.join(self.root_path,'masks', self.image_list[idx])
         caption = self.caption_list[idx]
