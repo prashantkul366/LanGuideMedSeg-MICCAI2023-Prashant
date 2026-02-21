@@ -29,14 +29,14 @@ class QaTa(Dataset):
         self.image_list = list(self.data['image_name'])
         self.caption_list = list(self.data['prompt_text'])
 
-        if mode == 'train':
-            self.image_list = self.image_list[:int(0.8*len(self.image_list))]
-            self.caption_list = self.caption_list[:int(0.8*len(self.caption_list))]
-        elif mode == 'valid':
-            self.image_list = self.image_list[int(0.8*len(self.image_list)):]
-            self.caption_list = self.caption_list[int(0.8*len(self.caption_list)):]
-        else:
-            pass   # for mode is 'test'
+        # if mode == 'train':
+        #     self.image_list = self.image_list[:int(0.8*len(self.image_list))]
+        #     self.caption_list = self.caption_list[:int(0.8*len(self.caption_list))]
+        # elif mode == 'valid':
+        #     self.image_list = self.image_list[int(0.8*len(self.image_list)):]
+        #     self.caption_list = self.caption_list[int(0.8*len(self.caption_list)):]
+        # else:
+        #     pass   # for mode is 'test'
 
         self.root_path = root_path
         self.image_size = image_size
