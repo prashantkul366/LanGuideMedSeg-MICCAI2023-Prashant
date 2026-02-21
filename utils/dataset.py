@@ -24,6 +24,8 @@ class QaTa(Dataset):
             self.data = pd.read_excel(csv_path)
         else:
             self.data = pd.read_csv(csv_path)
+        
+        self.data.columns = self.data.columns.str.strip()
         # self.image_list = list(self.data['Image'])
         # self.caption_list = list(self.data['Description'])
 
