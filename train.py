@@ -25,6 +25,7 @@ def get_parser():
                         help='config file')
 
     args = parser.parse_args()
+    print(vars(args))
     assert args.config is not None
     cfg = config.load_cfg_from_cfg_file(args.config)
 

@@ -18,8 +18,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         super(LanGuideMedSegWrapper, self).__init__()
         print("Model initiated")
         self.model = LanGuideMedSeg(args.bert_type, args.vision_type, args.project_dim)
-        # self.lr = args.lr
-        self.lr = args.TRAIN.lr
+        self.lr = args.lr
         self.history = {}
         
         self.loss_fn = DiceCELoss()
@@ -33,8 +32,7 @@ class LanGuideMedSegWrapper(pl.LightningModule):
 
     def configure_optimizers(self):
 
-        # optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.hparams.lr)
-        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr)
+        optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.hparams.lr)
         lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max =200, eta_min=1e-6)
 
         return {"optimizer":optimizer,"lr_scheduler":lr_scheduler}
