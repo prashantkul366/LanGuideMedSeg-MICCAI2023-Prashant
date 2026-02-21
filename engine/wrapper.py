@@ -28,15 +28,26 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
         
-        self.save_hyperparameters()
+        # self.save_hyperparameters()
 
+    # def configure_optimizers(self):
+
+    #     optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.hparams.lr)
+    #     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max =200, eta_min=1e-6)
+
+    #     return {"optimizer":optimizer,"lr_scheduler":lr_scheduler}
+    
     def configure_optimizers(self):
 
-        optimizer = torch.optim.AdamW(self.model.parameters(),lr = self.hparams.lr)
-        lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max =200, eta_min=1e-6)
+        optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr)
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer,
+            T_max=200,
+            eta_min=1e-6
+        )
 
-        return {"optimizer":optimizer,"lr_scheduler":lr_scheduler}
-        
+        return [optimizer], [scheduler]
+    
     def forward(self,x):
        
        return self.model.forward(x)
