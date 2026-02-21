@@ -26,6 +26,7 @@ class QaTa(Dataset):
             self.data = pd.read_csv(csv_path)
         
         self.data.columns = self.data.columns.str.strip()
+        print("Detected Columns:", self.data.columns.tolist())
         # self.image_list = list(self.data['Image'])
         # self.caption_list = list(self.data['Description'])
 
