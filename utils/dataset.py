@@ -26,8 +26,14 @@ class QaTa(Dataset):
             self.data = pd.read_csv(csv_path)
         # self.image_list = list(self.data['Image'])
         # self.caption_list = list(self.data['Description'])
-        self.image_list = list(self.data['image_name'])
-        self.caption_list = list(self.data['prompt_text'])
+
+        # KVASIR UNCOMMENT THIS
+        # self.image_list = list(self.data['image_name'])
+        # self.caption_list = list(self.data['prompt_text'])
+
+        # BUSI UNCOMMENT THIS
+        self.image_list = list(self.data['filename'])
+        self.caption_list = list(self.data['Text'])
 
         # if mode == 'train':
         #     self.image_list = self.image_list[:int(0.8*len(self.image_list))]
