@@ -41,11 +41,16 @@ if __name__ == '__main__':
                     image_size=args.image_size,
                     mode='train')
 
-    ds_valid = QaTa(csv_path=args.train_csv_path,
-                    root_path=args.train_root_path,
-                    tokenizer=args.bert_type,
-                    image_size=args.image_size,
-                    mode='valid')
+    # ds_valid = QaTa(csv_path=args.train_csv_path,
+    #                 root_path=args.train_root_path,
+    #                 tokenizer=args.bert_type,
+    #                 image_size=args.image_size,
+    #                 mode='valid')
+    ds_valid = QaTa(csv_path=args.valid_csv_path,
+                root_path=args.valid_root_path,
+                tokenizer=args.bert_type,
+                image_size=args.image_size,
+                mode='valid')
 
 
     dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)

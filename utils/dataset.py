@@ -15,10 +15,16 @@ class QaTa(Dataset):
 
         self.mode = mode
 
-        with open(csv_path, 'r') as f:
-            self.data = pd.read_csv(f)
-        self.image_list = list(self.data['Image'])
-        self.caption_list = list(self.data['Description'])
+        # with open(csv_path, 'r') as f:
+        #     self.data = pd.read_csv(f)
+        if csv_path.endswith(".xlsx"):
+            self.data = pd.read_excel(csv_path)
+        else:
+            self.data = pd.read_csv(csv_path)
+        # self.image_list = list(self.data['Image'])
+        # self.caption_list = list(self.data['Description'])
+        self.image_list = list(self.data['image_name'])
+        self.caption_list = list(self.data['prompt_text'])
 
         if mode == 'train':
             self.image_list = self.image_list[:int(0.8*len(self.image_list))]
@@ -42,8 +48,10 @@ class QaTa(Dataset):
 
         trans = self.transform(self.image_size)
 
-        image = os.path.join(self.root_path,'Images',self.image_list[idx].replace('mask_',''))
-        gt = os.path.join(self.root_path,'GTs', self.image_list[idx])
+        # image = os.path.join(self.root_path,'Images',self.image_list[idx].replace('mask_',''))
+        # gt = os.path.join(self.root_path,'GTs', self.image_list[idx])
+        image = os.path.join(self.root_path,'images', self.image_list[idx])
+        gt = os.path.join(self.root_path,'masks', self.image_list[idx])
         caption = self.caption_list[idx]
 
         token_output = self.tokenizer.encode_plus(caption, padding='max_length',
