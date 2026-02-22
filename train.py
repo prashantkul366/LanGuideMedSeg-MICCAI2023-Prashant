@@ -58,8 +58,27 @@ if __name__ == '__main__':
     # dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=args.train_batch_size)
     # dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=args.valid_batch_size)
 
-    dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=0)
-    dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=0)
+    # dl_train = DataLoader(ds_train, batch_size=args.train_batch_size, shuffle=True, num_workers=8)
+    # dl_valid = DataLoader(ds_valid, batch_size=args.valid_batch_size, shuffle=False, num_workers=8)
+    
+    dl_train = DataLoader(
+        ds_train,
+        batch_size=args.train_batch_size,
+        shuffle=True,
+        num_workers=8,          # 🔥 use CPU cores
+        pin_memory=True,
+        persistent_workers=True
+    )
+
+    dl_valid = DataLoader(
+        ds_valid,
+        batch_size=args.valid_batch_size,
+        shuffle=False,
+        num_workers=8,
+        pin_memory=True,
+        persistent_workers=True
+    )
+
     print("======================================")
     print("Train CSV Path:", args.train_csv_path)
     print("Train Root Path:", args.train_root_path)
