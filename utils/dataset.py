@@ -100,6 +100,7 @@ class QaTa(Dataset):
 
         image = os.path.join(self.root_path, 'images', image_name)
         gt = os.path.join(self.root_path, 'masks', mask_name)
+        print("GT unique:", torch.unique(gt))
         
         # image = os.path.join(self.root_path,'images', self.image_list[idx])
         # gt = os.path.join(self.root_path,'masks', self.image_list[idx])
@@ -124,7 +125,8 @@ class QaTa(Dataset):
         data = trans(data)
 
         image,gt,token,mask = data['image'],data['gt'],data['token'],data['mask']
-        gt = torch.where(gt==255,1,0)
+        # gt = torch.where(gt==255,1,0)
+        gt = (gt > 0).float()
         text = {'input_ids':token.squeeze(dim=0), 'attention_mask':mask.squeeze(dim=0)} 
 
         return ([image, text], gt)
