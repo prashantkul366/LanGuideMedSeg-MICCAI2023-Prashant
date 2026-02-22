@@ -126,9 +126,10 @@ class QaTa(Dataset):
 
         image,gt,token,mask = data['image'],data['gt'],data['token'],data['mask']
         # gt = torch.where(gt==255,1,0)
-        gt = (gt > 0).float()
+        # gt = (gt > 0).float()
+        gt = (gt > 0).long()
         text = {'input_ids':token.squeeze(dim=0), 'attention_mask':mask.squeeze(dim=0)} 
-        print("GT unique:", torch.unique(gt))
+        # print("GT unique:", torch.unique(gt))
 
         return ([image, text], gt)
 
