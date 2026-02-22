@@ -63,16 +63,15 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def shared_step(self, batch, batch_idx):
         x, y = batch
 
-        logits = self(x)
-        loss = self.loss_fn(logits, y)
+        probs = self(x)          # already sigmoid output
+        loss = self.loss_fn(probs, y.float())
 
-        probs = torch.sigmoid(logits)
         preds = (probs > 0.5).long()
 
         return {
             'loss': loss,
-            'preds': preds.detach(),   # integer tensor
-            'y': y.long().detach()     # ensure integer target
+            'preds': preds.detach(),
+            'y': y.long().detach()
         }
     
     def training_step(self, batch, batch_idx):
