@@ -10,6 +10,7 @@ import pandas as pd
 import sys
 import numpy as np
 import datetime
+from monai.metrics import DiceMetric
 
 class LanGuideMedSegWrapper(pl.LightningModule):
 
@@ -23,7 +24,15 @@ class LanGuideMedSegWrapper(pl.LightningModule):
         
         self.loss_fn = DiceCELoss()
 
-        metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
+        # metrics_dict = {"acc":Accuracy(task='binary'),"dice":Dice(),"MIoU":BinaryJaccardIndex()}
+        metrics_dict = {
+            "acc": Accuracy(task='binary'),
+            "MIoU": BinaryJaccardIndex(task="binary")
+        }
+        self.dice_metric = DiceMetric(
+            include_background=False,
+            reduction="mean_batch"
+        )
         self.train_metrics = nn.ModuleDict(metrics_dict)
         self.val_metrics = deepcopy(self.train_metrics)
         self.test_metrics = deepcopy(self.train_metrics)
@@ -63,15 +72,15 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def shared_step(self, batch, batch_idx):
         x, y = batch
 
-        probs = self(x)          # already sigmoid output
+        probs = self(x)                 # already sigmoid
         loss = self.loss_fn(probs, y.float())
 
-        preds = (probs > 0.5).long()
+        preds = (probs > 0.5).float()
 
         return {
             'loss': loss,
             'preds': preds.detach(),
-            'y': y.long().detach()
+            'y': y.float().detach()
         }
     
     def training_step(self, batch, batch_idx):
@@ -126,8 +135,15 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     def training_step_end(self, outputs):
         return {'loss':self.shared_step_end(outputs,"train")}
             
+    # def validation_step_end(self, outputs):
+    #     return {'val_loss':self.shared_step_end(outputs,"val")}
+
     def validation_step_end(self, outputs):
-        return {'val_loss':self.shared_step_end(outputs,"val")}
+
+        # Update MONAI Dice
+        self.dice_metric(outputs["preds"], outputs["y"])
+
+        return {'val_loss': self.shared_step_end(outputs, "val")}
             
     def test_step_end(self, outputs):
         return {'test_loss':self.shared_step_end(outputs,"test")}
@@ -183,20 +199,77 @@ class LanGuideMedSegWrapper(pl.LightningModule):
     #         self.print("<<<<<< reach best {0} : {1} >>>>>>".format(
     #             monitor,arr_scores[best_score_idx]),file = sys.stderr)
     
+    # def validation_epoch_end(self, outputs):
+
+    #     # dic = self.shared_epoch_end(outputs, stage="val")
+    #     # self.print_bar()
+    #     # self.print(dic)
+
+    #     # # Remove epoch key for logging
+    #     # dic.pop("epoch", None)
+    #     # self.log_dict(dic, logger=True)
+
+    #     # # Get current val_dice
+    #     # current_dice = dic["val_dice"]
+    #     dic = self.shared_epoch_end(outputs, stage="val")
+
+    #     val_dice = self.dice_metric.aggregate().item()
+    #     self.dice_metric.reset()
+    #     dic["val_dice"] = val_dice
+
+    #     self.print_bar()
+    #     self.print(dic)
+
+    #     dic.pop("epoch", None)
+    #     self.log_dict(dic, logger=True)
+
+    #     # Initialize best dice tracking
+    #     if not hasattr(self, "best_dice"):
+    #         self.best_dice = current_dice
+    #         self.no_improve_count = 0
+    #     else:
+    #         if current_dice > self.best_dice:
+    #             self.best_dice = current_dice
+    #             self.no_improve_count = 0
+    #         else:
+    #             self.no_improve_count += 1
+
+    #     # Print tracking info
+    #     self.print("\n" + "="*80)
+    #     self.print(f"Epoch {self.current_epoch}")
+    #     self.print(f"Val Loss  : {dic['val_loss']:.4f}")
+    #     self.print(f"Val Dice  : {dic['val_dice']:.4f}")
+    #     self.print(f"Val IoU   : {dic['val_MIoU']:.4f}")
+    #     self.print(f"Val Acc   : {dic['val_acc']:.4f}")
+    #     self.print(f"Best Dice : {self.best_dice:.4f}")
+    #     self.print(f"EarlyStop : {self.no_improve_count}/{self.patience}")
+    #     self.print("="*80)
+
+    #     # Print best model path if improved
+    #     ckpt_cb = self.trainer.checkpoint_callback
+    #     if ckpt_cb.best_model_path:
+    #         self.print(f"💾 Best model saved at: {ckpt_cb.best_model_path}")
+
     def validation_epoch_end(self, outputs):
 
+        # Get base metrics (loss, acc, MIoU)
         dic = self.shared_epoch_end(outputs, stage="val")
+
+        # ✅ Compute TRUE MONAI Dice (foreground only)
+        val_dice = self.dice_metric.aggregate().item()
+        self.dice_metric.reset()
+
+        dic["val_dice"] = val_dice
+        current_dice = val_dice   # 🔥 FIXED
+
         self.print_bar()
         self.print(dic)
 
-        # Remove epoch key for logging
+        # Log everything (this is what EarlyStopping monitors)
         dic.pop("epoch", None)
         self.log_dict(dic, logger=True)
 
-        # Get current val_dice
-        current_dice = dic["val_dice"]
-
-        # Initialize best dice tracking
+        # ---- Best Dice Tracking ----
         if not hasattr(self, "best_dice"):
             self.best_dice = current_dice
             self.no_improve_count = 0
@@ -207,23 +280,23 @@ class LanGuideMedSegWrapper(pl.LightningModule):
             else:
                 self.no_improve_count += 1
 
-        # Print tracking info
+        # ---- Print Pretty Output ----
         self.print("\n" + "="*80)
         self.print(f"Epoch {self.current_epoch}")
         self.print(f"Val Loss  : {dic['val_loss']:.4f}")
-        self.print(f"Val Dice  : {dic['val_dice']:.4f}")
+        self.print(f"Val Dice  : {current_dice:.4f}")
         self.print(f"Val IoU   : {dic['val_MIoU']:.4f}")
         self.print(f"Val Acc   : {dic['val_acc']:.4f}")
         self.print(f"Best Dice : {self.best_dice:.4f}")
         self.print(f"EarlyStop : {self.no_improve_count}/{self.patience}")
         self.print("="*80)
 
-        # Print best model path if improved
+        # ---- Show checkpoint path ----
         ckpt_cb = self.trainer.checkpoint_callback
         if ckpt_cb.best_model_path:
             self.print(f"💾 Best model saved at: {ckpt_cb.best_model_path}")
-
-
+    
+    
     def test_epoch_end(self, outputs):
         dic = self.shared_epoch_end(outputs,stage="test")
         dic.pop("epoch",None)
