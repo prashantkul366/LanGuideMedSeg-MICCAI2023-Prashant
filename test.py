@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     model.cuda()
     model.eval()
-
+    print("Model loaded")
     total_sens = 0
     total_spec = 0
     total_acc = 0
@@ -89,9 +89,11 @@ if __name__ == "__main__":
             image = image.cuda()
             gt = gt.cuda()
 
-            outputs = model(image)
-            probs = torch.sigmoid(outputs)
-            preds = (probs > 0.5).long()
+            # outputs = model(image)
+            # probs = torch.sigmoid(outputs)
+            # preds = (probs > 0.5).long()
+            outputs = model([image, text])   
+            preds = (outputs > 0.5).long()   
 
             sens, spec, acc, iou, dice = compute_metrics(preds, gt)
 
