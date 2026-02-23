@@ -89,6 +89,37 @@ if __name__ == "__main__":
     total_dice = 0
     total_samples = 0
 
+    # with torch.no_grad():
+    #     for batch in tqdm(dl_test):
+
+    #         (image, text), gt = batch
+
+    #         image = image.cuda(non_blocking=True)
+    #         gt = gt.cuda(non_blocking=True)
+
+    #         text = {
+    #             "input_ids": text["input_ids"].cuda(non_blocking=True),
+    #             "attention_mask": text["attention_mask"].cuda(non_blocking=True)
+    #         }
+
+    #         outputs = model([image, text])   # correct multimodal call
+    #         preds = (outputs > 0.5).long()   # model already has sigmoid
+
+    #         sens, spec, acc, iou, dice = compute_metrics(preds, gt)
+    #         dice_metric(preds.float(), gt.float()) 
+    #         total_sens += sens
+    #         total_spec += spec
+    #         total_acc += acc
+    #         total_iou += iou
+    #         total_dice += dice
+    #         total_samples += 1
+
+    total_sens = 0
+    total_spec = 0
+    total_acc = 0
+    total_iou = 0
+    total_samples = 0
+
     with torch.no_grad():
         for batch in tqdm(dl_test):
 
@@ -102,28 +133,52 @@ if __name__ == "__main__":
                 "attention_mask": text["attention_mask"].cuda(non_blocking=True)
             }
 
-            outputs = model([image, text])   # correct multimodal call
-            preds = (outputs > 0.5).long()   # model already has sigmoid
+            outputs = model([image, text])
+            preds = (outputs > 0.5).long()
 
-            sens, spec, acc, iou, dice = compute_metrics(preds, gt)
-            dice_metric(preds.float(), gt.float()) 
-            total_sens += sens
-            total_spec += spec
-            total_acc += acc
-            total_iou += iou
-            total_dice += dice
-            total_samples += 1
+            # ---- MONAI Dice (same as training) ----
+            dice_metric(preds.float(), gt.float())
 
+            # ---- Per-image metrics ----
+            for i in range(preds.shape[0]):
+
+                pred = preds[i].view(-1)
+                target = gt[i].view(-1)
+
+                TP = torch.sum((pred == 1) & (target == 1)).item()
+                TN = torch.sum((pred == 0) & (target == 0)).item()
+                FP = torch.sum((pred == 1) & (target == 0)).item()
+                FN = torch.sum((pred == 0) & (target == 1)).item()
+
+                eps = 1e-7
+
+                sensitivity = TP / (TP + FN + eps)
+                specificity = TN / (TN + FP + eps)
+                accuracy = (TP + TN) / (TP + TN + FP + FN + eps)
+                iou = TP / (TP + FP + FN + eps)
+
+                total_sens += sensitivity
+                total_spec += specificity
+                total_acc += accuracy
+                total_iou += iou
+                total_samples += 1
     final_dice = dice_metric.aggregate().item()
     dice_metric.reset()
 
     print("\n================ FINAL TEST METRICS ================")
     print(f"Dice        : {final_dice:.4f}")
     print("====================================================")
+    # print("\n================ FINAL TEST METRICS ================")
+    # print(f"Sensitivity : {total_sens / total_samples:.4f}")
+    # print(f"Specificity : {total_spec / total_samples:.4f}")
+    # print(f"Accuracy    : {total_acc / total_samples:.4f}")
+    # print(f"IoU         : {total_iou / total_samples:.4f}")
+    # print(f"Dice        : {total_dice / total_samples:.4f}")
+    # print("====================================================")
     print("\n================ FINAL TEST METRICS ================")
     print(f"Sensitivity : {total_sens / total_samples:.4f}")
     print(f"Specificity : {total_spec / total_samples:.4f}")
     print(f"Accuracy    : {total_acc / total_samples:.4f}")
     print(f"IoU         : {total_iou / total_samples:.4f}")
-    print(f"Dice        : {total_dice / total_samples:.4f}")
+    print(f"Dice        : {final_dice:.4f}")
     print("====================================================")
