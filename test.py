@@ -6,7 +6,7 @@ import utils.config as config
 from utils.dataset import QaTa
 from engine.wrapper import LanGuideMedSegWrapper
 from tqdm import tqdm
-
+from monai.metrics import DiceMetric
 torch.set_float32_matmul_precision("high")
 
 
@@ -73,7 +73,13 @@ if __name__ == "__main__":
 
     model.cuda()
     model.eval()
+
     model = model.to("cuda")
+
+    dice_metric = DiceMetric(
+        include_background=False,
+        reduction="mean_batch"
+    )
     torch.backends.cudnn.benchmark = True
     print("Model loaded")
     total_sens = 0
@@ -100,7 +106,7 @@ if __name__ == "__main__":
             preds = (outputs > 0.5).long()   # model already has sigmoid
 
             sens, spec, acc, iou, dice = compute_metrics(preds, gt)
-
+            dice_metric(preds.float(), gt.float()) 
             total_sens += sens
             total_spec += spec
             total_acc += acc
@@ -108,6 +114,12 @@ if __name__ == "__main__":
             total_dice += dice
             total_samples += 1
 
+    final_dice = dice_metric.aggregate().item()
+    dice_metric.reset()
+
+    print("\n================ FINAL TEST METRICS ================")
+    print(f"Dice        : {final_dice:.4f}")
+    print("====================================================")
     print("\n================ FINAL TEST METRICS ================")
     print(f"Sensitivity : {total_sens / total_samples:.4f}")
     print(f"Specificity : {total_spec / total_samples:.4f}")
