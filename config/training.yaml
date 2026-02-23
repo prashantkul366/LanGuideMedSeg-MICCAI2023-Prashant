@@ -43,8 +43,8 @@ TRAIN:
   device: 1
 
   model_save_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/save_model
-  # model_save_filename: medseg_kvasir
-  model_save_filename: medseg_busi
+  model_save_filename: medseg_kvasir
+  # model_save_filename: medseg_busi
 
 
 MODEL:
@@ -54,15 +54,15 @@ MODEL:
 
 
 DATA:
-  # train_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/train/Train_text.xlsx
-  # train_root_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/train
+  train_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/train/Train_text.xlsx
+  train_root_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/train
 
-  # valid_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/val/Val_text.xlsx
-  # valid_root_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/val
+  valid_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/val/Val_text.xlsx
+  valid_root_path: /content/drive/MyDrive/Prashant/research_datasets/Kvasir_80_20_TEXT_NEW/val
 
 # DATA:
-  train_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/train/Train_text.xlsx
-  train_root_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/train
+  # train_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/train/Train_text.xlsx
+  # train_root_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/train
 
-  valid_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/test/Test_text.xlsx
-  valid_root_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/test
+  # valid_csv_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/test/Test_text.xlsx
+  # valid_root_path: /content/drive/MyDrive/Prashant/research_datasets/Dataset_BUSI_80_20_TEXT_NEW/test
