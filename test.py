@@ -73,6 +73,8 @@ if __name__ == "__main__":
 
     model.cuda()
     model.eval()
+    model = model.to("cuda")
+    torch.backends.cudnn.benchmark = True
     print("Model loaded")
     total_sens = 0
     total_spec = 0
@@ -86,14 +88,16 @@ if __name__ == "__main__":
 
             (image, text), gt = batch
 
-            image = image.cuda()
-            gt = gt.cuda()
+            image = image.cuda(non_blocking=True)
+            gt = gt.cuda(non_blocking=True)
 
-            # outputs = model(image)
-            # probs = torch.sigmoid(outputs)
-            # preds = (probs > 0.5).long()
-            outputs = model([image, text])   
-            preds = (outputs > 0.5).long()   
+            text = {
+                "input_ids": text["input_ids"].cuda(non_blocking=True),
+                "attention_mask": text["attention_mask"].cuda(non_blocking=True)
+            }
+
+            outputs = model([image, text])   # correct multimodal call
+            preds = (outputs > 0.5).long()   # model already has sigmoid
 
             sens, spec, acc, iou, dice = compute_metrics(preds, gt)
 
